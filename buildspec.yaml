@@ -1,0 +1,12 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+  pre_build:
+    commands:
+      - pip3 install --upgrade aws-sam-cli
+  build:
+    commands:
+      - sam deploy --stack-name $STACK_NAME --s3-bucket $SOURCE_BUCKET_NAME --s3-prefix $SOURCE_BUCKET_PREFIX --region $REGION --no-confirm-changeset --disable-rollback --capabilities CAPABILITY_IAM --parameter-overrides "${parameter_overrides}"

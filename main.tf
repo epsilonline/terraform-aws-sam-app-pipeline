@@ -34,8 +34,16 @@ resource "aws_s3_bucket" "sam-bucket" {
   bucket = var.source_bucket_name
 }
 
+locals {
+  parameter_overrides_list = [for key, value in var.lambda_env_variables : "${key}=$${${key}}"]
+  parameter_overrides = join(" ", local.parameter_overrides_list)
+}
+
 data "template_file" "buildspec" {
   template = "${file("${path.module}/buildspec.yaml")}"
+  vars = {
+    parameter_overrides = local.parameter_overrides
+  }
 }
 
 
