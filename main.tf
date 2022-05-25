@@ -35,7 +35,7 @@ resource "aws_s3_bucket" "sam-bucket" {
 }
 
 locals {
-  parameter_overrides_list = [for key, value in var.lambda_env_variables : "${key}=$${${key}}"]
+  parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
   parameter_overrides = join(" ", local.parameter_overrides_list)
 }
 
@@ -95,7 +95,7 @@ resource "aws_codebuild_project" "sam_container_build" {
     }
 
     dynamic "environment_variable" {
-      for_each = var.lambda_env_variables
+      for_each = var.sam_cloudformation_variables
       content {
         name  = environment_variable.key
         value = environment_variable.value

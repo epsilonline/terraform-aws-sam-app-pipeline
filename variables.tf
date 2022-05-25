@@ -30,16 +30,16 @@ variable "stack_name" {
 
 variable "source_bucket_name" {
   type = string
-  description = "The name of the bucket"
+  description = "The name of the bucket used by SAM. This bucket will be created"
 }
 
 variable "source_bucket_prefix" {
   type = string
-  description = "The name of the bucket"
+  description = "Bucket subfolder in which SAM will place its artifacts"
 }
 
-variable "lambda_env_variables" {
+variable "sam_cloudformation_variables" {
   type = map(string)
-  description = "A map of key-value environment variables which will be set on the lambda function of this SAM deployment"
+  description = "A map of key-value paiers which are set as Parameters of the SAM deployment cloudformation template"
   default = {}
 }
