@@ -198,7 +198,7 @@ resource "aws_iam_role_policy" "sam-application-policy" {
     "Version": "2012-10-17",
     "Statement": [
         {
-            "Sid": "admin-access",
+            "Sid": "adminAccess",
             "Effect": "Allow",
             "Action": "*",
             "Resource": "*"
