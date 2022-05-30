@@ -1,3 +1,11 @@
-output "repository-name" {
-  value = var.repository_name
+output "codecommit-policy-arn" {
+  value = module.codecommit-policy.arn
+}
+
+output "pipeline-arn" {
+  value = aws_codepipeline.be_pipeline.arn
+}
+
+output "codebuild-project-arn" {
+  value = aws_codebuild_project.sam_container_build.arn
 }
