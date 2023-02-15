@@ -25,7 +25,7 @@ module "codecommit-policy" {
   count  = var.source_stage_provider == "CodeCommit" ? 1 : 0
   source = "git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-policy-codecommit.git"
 
-  policy_name            = "${var.application_name}-codecommit-policy"
+  policy_name            = "${var.repository_name}-codecommit-policy"
   codecommit_repo_arn    = aws_codecommit_repository.sam_codecommit_repo[0].arn
   codecommit_repo_branch = var.branch_name
 }
@@ -39,7 +39,7 @@ module "codebuild-role" {
 
   codepipeline_bucket_arn = aws_s3_bucket.be_artifact_bucket.arn
   region                  = var.region
-  role_prefix             = var.application_name
+  role_prefix             = var.name
   account_id              = var.account_id
 }
 
@@ -59,7 +59,7 @@ data "template_file" "buildspec" {
 resource "aws_codebuild_project" "sam_container_build" {
   badge_enabled  = false
   build_timeout  = 60
-  name           = var.application_name
+  name           = var.name
   queued_timeout = 480
   service_role   = module.codebuild-role.arn
   #  tags           = var.tags
@@ -141,7 +141,7 @@ resource "aws_codebuild_project" "sam_container_build" {
 module "pipeline-role" {
 
   source      = "git::git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-role-pipeline?ref=v1.0"
-  role_prefix = var.application_name
+  role_prefix = var.name
 }
 
 resource "aws_s3_bucket" "sam-bucket" {
@@ -149,7 +149,7 @@ resource "aws_s3_bucket" "sam-bucket" {
 }
 
 resource "aws_s3_bucket" "be_artifact_bucket" {
-  bucket = "${var.application_name}-pipeline-artifacts"
+  bucket = "${var.name}-pipeline-artifacts"
 
 }
 
@@ -160,7 +160,7 @@ resource "aws_s3_bucket_acl" "bucket_acl" {
 
 
 resource "aws_codepipeline" "be_pipeline" {
-  name     = var.application_name
+  name     = var.name
   role_arn = module.pipeline-role.arn
 
   artifact_store {
@@ -183,7 +183,7 @@ resource "aws_codepipeline" "be_pipeline" {
       configuration = {
         S3Bucket       = var.source_stage_provider == "S3" ? var.source_bucket_name : null
         S3ObjectKey    = var.source_stage_provider == "S3" ? "source.zip" : null
-        RepositoryName = var.source_stage_provider == "CodeCommit" ? var.repository_name : null
+        RepositoryName = var.source_stage_provider == "CodeCommit" ? aws_codecommit_repository.sam_codecommit_repo[0].repository_name : null
         BranchName     = var.source_stage_provider == "CodeCommit" ? var.branch_name : null
 
       }

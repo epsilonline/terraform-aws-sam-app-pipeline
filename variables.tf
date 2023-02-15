@@ -11,6 +11,7 @@ variable "repository_name" {
 variable "branch_name" {
   description = "Codecommit branch name from which the code will be built"
   type        = string
+  default     = "main"
 }
 
 variable "region" {
@@ -18,7 +19,7 @@ variable "region" {
   description = "The AWS region in which to create resources"
 }
 
-variable "application_name" {
+variable "name" {
   type        = string
   description = "The name of the application"
 }
@@ -36,6 +37,7 @@ variable "source_bucket_name" {
 variable "source_bucket_prefix" {
   type        = string
   description = "Bucket subfolder in which SAM will place its artifacts"
+  default     = "artifacts"
 }
 
 variable "sam_cloudformation_variables" {
