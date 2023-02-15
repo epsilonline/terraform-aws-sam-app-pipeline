@@ -7,40 +7,49 @@ terraform {
   }
 }
 
-data "aws_codecommit_repository" "source_repository" {
+#########################################
+# CodeCommit
+#########################################
+
+resource "aws_codecommit_repository" "sam_codecommit_repo" {
+  count           = var.source_stage_provider == "CodeCommit" ? 1 : 0
   repository_name = var.repository_name
+  description     = "Create CodeCommit repository only if source stage pipeline starts from CodeCommit"
 }
 
+# data "aws_codecommit_repository" "source_repository" {  //To_delete?
+#   repository_name = var.repository_name
+# }
+
 module "codecommit-policy" {
+  count  = var.source_stage_provider == "CodeCommit" ? 1 : 0
   source = "git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-policy-codecommit.git"
 
-  policy_name = "${var.application_name}-codecommit-policy"
-  codecommit_repo_arn = data.aws_codecommit_repository.source_repository.arn
+  policy_name            = "${var.application_name}-codecommit-policy"
+  codecommit_repo_arn    = aws_codecommit_repository.sam_codecommit_repo[0].arn
   codecommit_repo_branch = var.branch_name
 }
 
 
-############# CODEBUILD ###############
+#########################################
+# CodeBuild
+#########################################
 module "codebuild-role" {
   source = "./terraform-modules/iam-role-codebuild"
 
   codepipeline_bucket_arn = aws_s3_bucket.be_artifact_bucket.arn
-  region = var.region
-  role_prefix = var.application_name
-  account_id = var.account_id
-}
-
-resource "aws_s3_bucket" "sam-bucket" {
-  bucket = var.source_bucket_name
+  region                  = var.region
+  role_prefix             = var.application_name
+  account_id              = var.account_id
 }
 
 locals {
   parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
-  parameter_overrides = join(" ", local.parameter_overrides_list)
+  parameter_overrides      = join(" ", local.parameter_overrides_list)
 }
 
 data "template_file" "buildspec" {
-  template = "${file("${path.module}/buildspec.yaml")}"
+  template = file("${path.module}/buildspec.yaml")
   vars = {
     parameter_overrides = local.parameter_overrides
   }
@@ -53,7 +62,7 @@ resource "aws_codebuild_project" "sam_container_build" {
   name           = var.application_name
   queued_timeout = 480
   service_role   = module.codebuild-role.arn
-#  tags           = var.tags
+  #  tags           = var.tags
 
   artifacts {
     encryption_disabled    = false
@@ -75,23 +84,23 @@ resource "aws_codebuild_project" "sam_container_build" {
     }
 
     environment_variable {
-      name  = "SOURCE_BUCKET_NAME"
+      name = "SOURCE_BUCKET_NAME"
       ## ARN OF THE BUCKET USED BY SAM, to be created inside this terraform
       value = var.source_bucket_name
-      type = "PLAINTEXT"
+      type  = "PLAINTEXT"
     }
 
     environment_variable {
-      name  = "SOURCE_BUCKET_PREFIX"
+      name = "SOURCE_BUCKET_PREFIX"
       ## ARN OF THE BUCKET USED BY SAM, to be created inside this terraform
       value = var.source_bucket_prefix
-      type = "PLAINTEXT"
+      type  = "PLAINTEXT"
     }
 
     environment_variable {
       name  = "REGION"
       value = var.region
-      type = "PLAINTEXT"
+      type  = "PLAINTEXT"
     }
 
     dynamic "environment_variable" {
@@ -99,7 +108,7 @@ resource "aws_codebuild_project" "sam_container_build" {
       content {
         name  = environment_variable.key
         value = environment_variable.value
-        type = "PLAINTEXT"
+        type  = "PLAINTEXT"
       }
     }
   }
@@ -125,12 +134,18 @@ resource "aws_codebuild_project" "sam_container_build" {
 
 }
 
+#########################################
+# Pipeline
+#########################################
 
-############# PIPELINE ##############
 module "pipeline-role" {
 
-  source = "git::git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-role-pipeline?ref=v1.0"
+  source      = "git::git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-role-pipeline?ref=v1.0"
   role_prefix = var.application_name
+}
+
+resource "aws_s3_bucket" "sam-bucket" {
+  bucket = var.source_bucket_name
 }
 
 resource "aws_s3_bucket" "be_artifact_bucket" {
@@ -160,14 +175,17 @@ resource "aws_codepipeline" "be_pipeline" {
       name     = "Source"
       category = "Source"
       owner    = "AWS"
-      provider = "CodeCommit"
+      provider = var.source_stage_provider
 
       version          = "1"
       output_artifacts = ["source_output"]
 
       configuration = {
-        RepositoryName = var.repository_name
-        BranchName     = var.branch_name
+        S3Bucket       = var.source_stage_provider == "S3" ? var.source_bucket_name : null
+        S3ObjectKey    = var.source_stage_provider == "S3" ? "source.zip" : null
+        RepositoryName = var.source_stage_provider == "CodeCommit" ? var.repository_name : null
+        BranchName     = var.source_stage_provider == "CodeCommit" ? var.branch_name : null
+
       }
     }
   }

@@ -1,5 +1,5 @@
 output "codecommit-policy-arn" {
-  value = module.codecommit-policy.arn
+  value = module.codecommit-policy[0].arn
 }
 
 output "pipeline-arn" {
