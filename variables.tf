@@ -6,6 +6,7 @@ variable "account_id" {
 variable "repository_name" {
   description = "Codecommit repository name from which the code will be built"
   type        = string
+  default     = "sam-service-scheduler"
 }
 
 variable "branch_name" {
