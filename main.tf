@@ -184,7 +184,7 @@ resource "aws_codepipeline" "be_pipeline" {
         S3Bucket       = var.source_stage_provider == "S3" ? var.source_bucket_name : null
         S3ObjectKey    = var.source_stage_provider == "S3" ? "source.zip" : null
         RepositoryName = var.source_stage_provider == "CodeCommit" ? aws_codecommit_repository.sam_codecommit_repo[0].repository_name : null
-        BranchName     = var.source_stage_provider == "CodeCommit" ? module.codecommit-policy[0].codecommit_repo_branch : null
+        BranchName     = var.source_stage_provider == "CodeCommit" ? var.branch_name : null
 
       }
     }
