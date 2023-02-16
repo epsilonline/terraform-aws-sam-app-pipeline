@@ -85,7 +85,7 @@ resource "aws_codebuild_project" "sam_container_build" {
 
     environment_variable {
       name = "SOURCE_BUCKET_NAME"
-      ## ARN OF THE BUCKET USED BY SAM, to be created inside this terraform
+      ## NAME OF THE BUCKET USED BY SAM, to be created inside this terraform
       value = var.source_bucket_name
       type  = "PLAINTEXT"
     }
@@ -158,7 +158,6 @@ resource "aws_s3_bucket_acl" "bucket_acl" {
   acl    = "private"
 }
 
-
 resource "aws_codepipeline" "be_pipeline" {
   name     = var.name
   role_arn = module.pipeline-role.arn
@@ -181,8 +180,12 @@ resource "aws_codepipeline" "be_pipeline" {
       output_artifacts = ["source_output"]
 
       configuration = {
-        S3Bucket       = var.source_stage_provider == "S3" ? var.source_bucket_name : null
+
+        # Case Source S3
+        S3Bucket       = var.source_stage_provider == "S3" ? aws_s3_bucket.sam-bucket.bucket : null
         S3ObjectKey    = var.source_stage_provider == "S3" ? "source.zip" : null
+
+        # Case Source CodeCommit
         RepositoryName = var.source_stage_provider == "CodeCommit" ? aws_codecommit_repository.sam_codecommit_repo[0].repository_name : null
         BranchName     = var.source_stage_provider == "CodeCommit" ? var.branch_name : null
 
