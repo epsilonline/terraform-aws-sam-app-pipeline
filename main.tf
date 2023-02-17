@@ -147,7 +147,12 @@ module "pipeline-role" {
 resource "aws_s3_bucket" "sam-bucket" {
   bucket = var.source_bucket_name
 }
-
+resource "aws_s3_bucket_versioning" "sam-bucket-versioning" {
+  bucket = aws_s3_bucket.sam-bucket.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
 resource "aws_s3_bucket" "be_artifact_bucket" {
   bucket = "${var.name}-pipeline-artifacts"
 
