@@ -105,7 +105,7 @@ resource "aws_codebuild_project" "sam_container_build" {
 
     environment_variable {
       name  = "SAM_CLOUDFORMATION_KEYS"
-      value = keys(var.sam_cloudformation_variables)
+      value =format("%#v",keys(var.sam_cloudformation_variables))
       type  = "PLAINTEXT"
     }
 
