@@ -103,6 +103,12 @@ resource "aws_codebuild_project" "sam_container_build" {
       type  = "PLAINTEXT"
     }
 
+    environment_variable {
+      name  = "SAM_CLOUDFORMATION_KEYS"
+      value = keys(var.sam_cloudformation_variables)
+      type  = "PLAINTEXT"
+    }
+
     dynamic "environment_variable" {
       for_each = var.sam_cloudformation_variables
       content {
