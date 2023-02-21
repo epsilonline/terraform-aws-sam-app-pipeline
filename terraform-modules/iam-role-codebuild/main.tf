@@ -58,6 +58,15 @@ resource "aws_iam_role_policy" "codebuild-policy" {
                 "codebuild:BatchPutTestCases",
                 "codebuild:BatchPutCodeCoverages"
             ]
+        },
+        {
+            "Effect": "Allow",
+            "Resource": [
+                "*"
+            ],
+            "Action": [
+                "cloudformation:CreateChangeSet"
+            ]
         }
     ]
 }

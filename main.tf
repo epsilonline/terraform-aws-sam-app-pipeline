@@ -103,13 +103,6 @@ resource "aws_codebuild_project" "sam_container_build" {
       value = var.region
       type  = "PLAINTEXT"
     }
-
-    environment_variable {
-      name  = "SAM_CLOUDFORMATION_KEYS"
-      value = format("%#v",keys(var.sam_cloudformation_variables))
-      type  = "PLAINTEXT"
-    }
-
     dynamic "environment_variable" {
       for_each = var.sam_cloudformation_variables
       content {
@@ -132,7 +125,7 @@ resource "aws_codebuild_project" "sam_container_build" {
   }
 
   source {
-    buildspec           = templatefile("${path.module}/buildspec.yaml", {parameter_overrides = local.parameter_overrides})
+    buildspec           = templatefile("${path.module}/buildspec.yaml", { parameter_overrides = local.parameter_overrides })
     git_clone_depth     = 0
     insecure_ssl        = false
     report_build_status = false
@@ -194,8 +187,8 @@ resource "aws_codepipeline" "be_pipeline" {
       configuration = {
 
         # Case Source S3
-        S3Bucket       = var.source_stage_provider == "S3" ? aws_s3_bucket.sam-bucket.bucket : null
-        S3ObjectKey    = var.source_stage_provider == "S3" ? "source.zip" : null
+        S3Bucket    = var.source_stage_provider == "S3" ? aws_s3_bucket.sam-bucket.bucket : null
+        S3ObjectKey = var.source_stage_provider == "S3" ? "source.zip" : null
 
         # Case Source CodeCommit
         RepositoryName = var.source_stage_provider == "CodeCommit" ? aws_codecommit_repository.sam_codecommit_repo[0].repository_name : null
