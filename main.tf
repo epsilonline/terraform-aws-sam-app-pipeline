@@ -56,6 +56,7 @@ data "template_file" "buildspec" {
 }
 
 
+
 resource "aws_codebuild_project" "sam_container_build" {
   badge_enabled  = false
   build_timeout  = 60
@@ -131,7 +132,7 @@ resource "aws_codebuild_project" "sam_container_build" {
   }
 
   source {
-    buildspec           = data.template_file.buildspec.rendered
+    buildspec           = templatefile("${path.module}/buildspec.yaml", {parameter_overrides = local.parameter_overrides})
     git_clone_depth     = 0
     insecure_ssl        = false
     report_build_status = false
