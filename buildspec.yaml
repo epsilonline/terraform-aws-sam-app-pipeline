@@ -12,7 +12,7 @@ phases:
       - REPLACE=$(echo $SAM_CLOUDFORMATION_KEYS | sed 's/\[// ; s/\]// ; s/"//g')
       - IFS=' ,'
       - read -a replaced_array <<< "$REPLACE"
-      - for i in "${replaced_array[@]};
+      - for i in "${replaced_array[@]}";
           do 
               eval "value=\${$i}";
               PARAMETERS=${PARAMETERS}"${i}=${value} "; 
