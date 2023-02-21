@@ -9,10 +9,7 @@ phases:
       - pip3 install --upgrade aws-sam-cli
   build:
     commands:
-      - REPLACE=$(echo $SAM_CLOUDFORMATION_KEYS | sed 's/\[// ; s/\]// ; s/"//g')
-      - IFS=' ,'
-      - read -a replaced_array <<< "$REPLACE"
-      - sam build && sam deploy --stack-name $STACK_NAME --s3-bucket $SOURCE_BUCKET_NAME --s3-prefix $SOURCE_BUCKET_PREFIX --region $REGION --no-confirm-changeset --disable-rollback --capabilities CAPABILITY_IAM --parameter-overrides $PARAMETERS
+      - sam build && sam deploy --stack-name $STACK_NAME --s3-bucket $SOURCE_BUCKET_NAME --s3-prefix $SOURCE_BUCKET_PREFIX --region $REGION --no-confirm-changeset --disable-rollback --capabilities CAPABILITY_IAM --parameter-overrides ${parameter_overrides}
 artifacts:
   files:
     - "**/*"
