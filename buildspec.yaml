@@ -12,10 +12,10 @@ phases:
       - REPLACE=$(echo $SAM_CLOUDFORMATION_KEYS | sed 's/\[// ; s/\]// ; s/"//g')
       - IFS=' ,'
       - read -a replaced_array <<< "$REPLACE"
-      - for i in "${replaced_array[@]} 
+      - for i in "${replaced_array[@]};
           do 
-              eval "value=\${$i}" 
-              PARAMETERS=${PARAMETERS}"${i}=${value} " 
+              eval "value=\${$i}";
+              PARAMETERS=${PARAMETERS}"${i}=${value} "; 
           done
       - sam build && sam deploy --stack-name $STACK_NAME --s3-bucket $SOURCE_BUCKET_NAME --s3-prefix $SOURCE_BUCKET_PREFIX --region $REGION --no-confirm-changeset --disable-rollback --capabilities CAPABILITY_IAM --parameter-overrides $PARAMETERS
 artifacts:
