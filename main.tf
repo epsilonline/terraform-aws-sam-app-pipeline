@@ -17,10 +17,6 @@ resource "aws_codecommit_repository" "sam_codecommit_repo" {
   description     = "Create CodeCommit repository only if source stage pipeline starts from CodeCommit"
 }
 
-# data "aws_codecommit_repository" "source_repository" {  //To_delete?
-#   repository_name = var.repository_name
-# }
-
 module "codecommit-policy" {
   count  = var.source_stage_provider == "CodeCommit" ? 1 : 0
   source = "git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-policy-codecommit.git"
@@ -37,7 +33,7 @@ module "codecommit-policy" {
 module "codebuild-role" {
   source = "./terraform-modules/iam-role-codebuild"
 
-  codepipeline_bucket_arn = aws_s3_bucket.be_artifact_bucket.arn
+  codepipeline_bucket_arn = var.s3_bucket_artifact_id == null ? aws_s3_bucket.be_artifact_bucket[0].arn : data.aws_s3_bucket.shared_bucket[0].arn
   region                  = var.region
   role_prefix             = var.name
   account_id              = var.account_id
@@ -138,6 +134,11 @@ resource "aws_codebuild_project" "sam_container_build" {
 # Pipeline
 #########################################
 
+data "aws_s3_bucket" "shared_bucket" {
+  count  = var.s3_bucket_artifact_id != null ? 1 : 0
+  bucket = var.s3_bucket_artifact_id
+}
+
 module "pipeline-role" {
 
   source      = "git::git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-role-pipeline?ref=v1.0"
@@ -154,12 +155,13 @@ resource "aws_s3_bucket_versioning" "sam-bucket-versioning" {
   }
 }
 resource "aws_s3_bucket" "be_artifact_bucket" {
+  count  = var.s3_bucket_artifact_id == null ? 1 : 0
   bucket = "${var.name}-pipeline-artifacts"
-
 }
 
 resource "aws_s3_bucket_acl" "bucket_acl" {
-  bucket = aws_s3_bucket.be_artifact_bucket.id
+  count  = var.s3_bucket_artifact_id == null ? 1 : 0
+  bucket = aws_s3_bucket.be_artifact_bucket[0].id
   acl    = "private"
 }
 
@@ -168,7 +170,7 @@ resource "aws_codepipeline" "be_pipeline" {
   role_arn = module.pipeline-role.arn
 
   artifact_store {
-    location = aws_s3_bucket.be_artifact_bucket.bucket
+    location = var.s3_bucket_artifact_id == null ? aws_s3_bucket.be_artifact_bucket[0].bucket : var.s3_bucket_artifact_id
     type     = "S3"
   }
 
