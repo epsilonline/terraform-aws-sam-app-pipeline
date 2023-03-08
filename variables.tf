@@ -52,3 +52,9 @@ variable "source_stage_provider" {
   description = "Pipeline source stage provider to use. Allowed values S3 or CodeCommit"
   default     = "S3"
 }
+
+variable "s3_bucket_artifact_id" {
+  type        = string
+  default     = null
+  description = "Bucket name of shared artifact bucket. If null create a dedicated bucket."
+}
