@@ -58,6 +58,15 @@ resource "aws_iam_role_policy" "codebuild-policy" {
                 "codebuild:BatchPutTestCases",
                 "codebuild:BatchPutCodeCoverages"
             ]
+        },
+        {
+            "Effect": "Allow",
+            "Resource": [
+                "*"
+            ],
+            "Action": [
+                "cloudformation:CreateChangeSet"
+            ]
         }
     ]
 }
@@ -66,7 +75,7 @@ POLICY
 
 resource "aws_iam_role_policy" "sam-deploy-policy" {
   role = aws_iam_role.codebuild-service-role.name
-  name = "${var.role_prefix}-sam-deploy-policy"
+  name = "${var.role_prefix}-deploy-policy"
 
   policy = <<POLICY
 {
@@ -191,7 +200,7 @@ POLICY
 
 resource "aws_iam_role_policy" "sam-application-policy" {
   role = aws_iam_role.codebuild-service-role.name
-  name = "${var.role_prefix}-sam-application-policy"
+  name = "${var.role_prefix}-application-policy"
 
   policy = <<POLICY
 {

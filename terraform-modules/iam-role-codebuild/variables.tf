@@ -15,5 +15,5 @@ variable "region" {
 
 variable "account_id" {
   description = "The id of the account on which the SAM application will be deployed"
-  type = string
+  type        = string
 }

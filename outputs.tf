@@ -1,5 +1,5 @@
 output "codecommit-policy-arn" {
-  value = module.codecommit-policy.arn
+  value = var.source_stage_provider == "CodeCommit" ? module.codecommit-policy[0].arn : null
 }
 
 output "pipeline-arn" {
