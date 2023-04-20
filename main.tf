@@ -7,6 +7,12 @@ terraform {
   }
 }
 
+locals {
+  parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
+  parameter_overrides      = join(" ", local.parameter_overrides_list)
+  buildspec_template = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
+}
+
 #########################################
 # CodeCommit
 #########################################
@@ -37,11 +43,6 @@ module "codebuild-role" {
   region                  = var.region
   role_prefix             = var.name
   account_id              = var.account_id
-}
-
-locals {
-  parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
-  parameter_overrides      = join(" ", local.parameter_overrides_list)
 }
 
 data "template_file" "buildspec" {
@@ -121,7 +122,7 @@ resource "aws_codebuild_project" "sam_container_build" {
   }
 
   source {
-    buildspec           = templatefile("${path.module}/buildspec.yaml", { parameter_overrides = local.parameter_overrides })
+    buildspec           = templatefile(local.buildspec_template, { parameter_overrides = local.parameter_overrides })
     git_clone_depth     = 0
     insecure_ssl        = false
     report_build_status = false

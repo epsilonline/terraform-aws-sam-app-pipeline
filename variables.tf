@@ -58,3 +58,9 @@ variable "s3_bucket_artifact_id" {
   default     = null
   description = "Bucket name of shared artifact bucket. If null create a dedicated bucket."
 }
+
+variable "buildspec_template" {
+  type        = string
+  default = null
+  description = "Contents of the buildspec to use during CodeBuild"
+}
