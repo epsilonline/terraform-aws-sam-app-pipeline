@@ -10,7 +10,7 @@ terraform {
 locals {
   parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
   parameter_overrides      = join(" ", local.parameter_overrides_list)
-  buildspec_template = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
+  buildspec_template       = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
 }
 
 #########################################
@@ -160,10 +160,22 @@ resource "aws_s3_bucket" "be_artifact_bucket" {
   bucket = "${var.name}-pipeline-artifacts"
 }
 
+resource "aws_s3_bucket_ownership_controls" "be_artifact_bucket" {
+  count  = var.s3_bucket_artifact_id == null ? 1 : 0
+  bucket = aws_s3_bucket.be_artifact_bucket[0].id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
 resource "aws_s3_bucket_acl" "bucket_acl" {
   count  = var.s3_bucket_artifact_id == null ? 1 : 0
   bucket = aws_s3_bucket.be_artifact_bucket[0].id
   acl    = "private"
+
+  depends_on = [
+    aws_s3_bucket_ownership_controls.be_artifact_bucket
+  ]
 }
 
 resource "aws_codepipeline" "be_pipeline" {

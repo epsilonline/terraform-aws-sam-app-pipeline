@@ -61,6 +61,6 @@ variable "s3_bucket_artifact_id" {
 
 variable "buildspec_template" {
   type        = string
-  default = null
+  default     = null
   description = "Contents of the buildspec to use during CodeBuild"
 }
