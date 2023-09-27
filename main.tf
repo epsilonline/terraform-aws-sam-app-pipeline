@@ -11,6 +11,8 @@ locals {
   parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
   parameter_overrides      = join(" ", local.parameter_overrides_list)
   buildspec_template       = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
+  create_code_commit       = var.create_code_commit == true && var.source_stage_provider == "CodeCommit" 
+  code_commit_arn = local.create_code_commit ? aws_codecommit_repository.sam_codecommit_repo[0].arn : var.repository_arn
 }
 
 #########################################
@@ -18,7 +20,7 @@ locals {
 #########################################
 
 resource "aws_codecommit_repository" "sam_codecommit_repo" {
-  count           = var.source_stage_provider == "CodeCommit" ? 1 : 0
+  count           = local.create_code_commit ? 1 : 0
   repository_name = var.repository_name
   description     = "Create CodeCommit repository only if source stage pipeline starts from CodeCommit"
 }
@@ -28,7 +30,7 @@ module "codecommit-policy" {
   source = "git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-policy-codecommit.git"
 
   policy_name            = "${var.repository_name}-codecommit-policy"
-  codecommit_repo_arn    = aws_codecommit_repository.sam_codecommit_repo[0].arn
+  codecommit_repo_arn    = local.code_commit_arn
   codecommit_repo_branch = var.branch_name
 }
 
@@ -43,13 +45,6 @@ module "codebuild-role" {
   region                  = var.region
   role_prefix             = var.name
   account_id              = var.account_id
-}
-
-data "template_file" "buildspec" {
-  template = file("${path.module}/buildspec.yaml")
-  vars = {
-    parameter_overrides = local.parameter_overrides
-  }
 }
 
 
@@ -206,7 +201,7 @@ resource "aws_codepipeline" "be_pipeline" {
         S3ObjectKey = var.source_stage_provider == "S3" ? "source.zip" : null
 
         # Case Source CodeCommit
-        RepositoryName = var.source_stage_provider == "CodeCommit" ? aws_codecommit_repository.sam_codecommit_repo[0].repository_name : null
+        RepositoryName = var.source_stage_provider == "CodeCommit" ? var.repository_name : null
         BranchName     = var.source_stage_provider == "CodeCommit" ? var.branch_name : null
 
       }

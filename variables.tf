@@ -9,6 +9,20 @@ variable "repository_name" {
   default     = "sam-service-scheduler"
 }
 
+variable "repository_arn" {
+  description = "Codecommit repository name from which the code will be built"
+  type        = string
+  default     = ""
+}
+
+variable "create_code_commit" {
+  description = "Codecommit repository name from which the code will be built"
+  type        = bool
+  default     = true
+}
+
+
+
 variable "branch_name" {
   description = "Codecommit branch name from which the code will be built"
   type        = string
