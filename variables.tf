@@ -78,3 +78,19 @@ variable "buildspec_template" {
   default     = null
   description = "Contents of the buildspec to use during CodeBuild"
 }
+
+variable "s3_expiration_lifecycle" {
+  description = "Expires bucket objects after n days"
+  type = object({
+    status          = optional(string, "Enabled")
+    expiration_days = optional(number, 15)
+  })
+  validation {
+    condition     = contains(["Enabled", "Disabled"], var.s3_expiration_lifecycle.status)
+    error_message = "The status must be either 'Enabled' or 'Disabled'"
+  }
+  default = {
+    status = "Enabled"
+    expiration_days = 15
+  }
+}

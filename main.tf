@@ -173,6 +173,19 @@ resource "aws_s3_bucket_acl" "bucket_acl" {
   ]
 }
 
+resource "aws_s3_bucket_lifecycle_configuration" "delete_objects" {
+  count  = var.s3_bucket_artifact_id == null ? 1 : 0
+  bucket = aws_s3_bucket.be_artifact_bucket[0].id
+  rule {
+    status = var.s3_expiration_lifecycle.status
+    id     = "expire_all_files"
+
+    expiration {
+      days = var.s3_expiration_lifecycle.expiration_days
+    }
+  }
+}
+
 resource "aws_codepipeline" "be_pipeline" {
   name     = var.name
   role_arn = module.pipeline-role.arn
