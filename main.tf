@@ -29,7 +29,7 @@ module "codecommit-policy" {
   count  = var.source_stage_provider == "CodeCommit" ? 1 : 0
   source = "git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-policy-codecommit.git"
 
-  policy_name            = "${var.repository_name}-codecommit-policy"
+  policy_name            = "${var.name}-codecommit-policy"
   codecommit_repo_arn    = local.code_commit_arn
   codecommit_repo_branch = var.branch_name
 }
