@@ -90,7 +90,7 @@ variable "s3_expiration_lifecycle" {
     error_message = "The status must be either 'Enabled' or 'Disabled'"
   }
   default = {
-    status = "Enabled"
+    status          = "Enabled"
     expiration_days = 15
   }
 }

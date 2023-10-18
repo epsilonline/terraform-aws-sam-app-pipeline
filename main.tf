@@ -11,8 +11,8 @@ locals {
   parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
   parameter_overrides      = join(" ", local.parameter_overrides_list)
   buildspec_template       = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
-  create_code_commit       = var.create_code_commit == true && var.source_stage_provider == "CodeCommit" 
-  code_commit_arn = local.create_code_commit ? aws_codecommit_repository.sam_codecommit_repo[0].arn : var.repository_arn
+  create_code_commit       = var.create_code_commit == true && var.source_stage_provider == "CodeCommit"
+  code_commit_arn          = local.create_code_commit ? aws_codecommit_repository.sam_codecommit_repo[0].arn : var.repository_arn
 }
 
 #########################################
@@ -217,6 +217,9 @@ resource "aws_codepipeline" "be_pipeline" {
         RepositoryName = var.source_stage_provider == "CodeCommit" ? var.repository_name : null
         BranchName     = var.source_stage_provider == "CodeCommit" ? var.branch_name : null
 
+        PollForSourceChanges = false
+
+
       }
     }
   }
@@ -238,4 +241,76 @@ resource "aws_codepipeline" "be_pipeline" {
       }
     }
   }
+}
+
+#########################################
+# Cloudwatch event
+#########################################
+
+resource "aws_iam_role" "cloudwatch_app_source" {
+  name = "${var.name}-event-source"
+  path = "/service-role/"
+
+  assume_role_policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Service": "events.amazonaws.com"
+      },
+      "Action": "sts:AssumeRole"
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_iam_role_policy" "app_source_trigger" {
+  name = "${var.name}-event-source"
+  role = aws_iam_role.cloudwatch_app_source.name
+
+  policy = <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "codepipeline:StartPipelineExecution"
+      ],
+      "Resource": [
+        "${aws_codepipeline.be_pipeline.arn}"
+      ]
+    }
+  ]
+}
+EOF
+}
+
+resource "aws_cloudwatch_event_rule" "s3_source" {
+  name = "${var.name}-event-rule"
+
+  event_pattern = <<PATTERN
+  {
+  "source": ["aws.s3"],
+  "detail-type": ["AWS API Call via CloudTrail"],
+  "detail": {
+    "eventSource": ["s3.amazonaws.com"],
+    "eventName": ["PutObject", "CompleteMultipartUpload", "CopyObject"],
+    "requestParameters": {
+      "bucketName": ["${aws_s3_bucket.sam-bucket.bucket}"],
+      "key": ["source.zip"]
+    }
+  }
+}
+PATTERN
+}
+
+resource "aws_cloudwatch_event_target" "app_source" {
+  rule      = aws_cloudwatch_event_rule.s3_source.name
+  target_id = "CodePipeline"
+  arn       = aws_codepipeline.be_pipeline.arn
+  role_arn  = aws_iam_role.cloudwatch_app_source.arn
 }
