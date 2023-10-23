@@ -9,3 +9,7 @@ output "pipeline-arn" {
 output "codebuild-project-arn" {
   value = aws_codebuild_project.sam_container_build.arn
 }
+
+output "source_bucket_name" {
+  value = aws_s3_bucket.sam-bucket.bucket
+}
