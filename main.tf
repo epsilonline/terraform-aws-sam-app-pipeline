@@ -147,6 +147,26 @@ module "pipeline-role" {
 resource "aws_s3_bucket" "sam-bucket" {
   bucket = var.source_bucket_name
 }
+
+data "aws_kms_key" "s3" {
+  count = var.kms_custom_key_s3_id != null ? 1 : 0
+  key_id = var.kms_custom_key_s3_id
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "sam-bucket-encryption" {
+
+  count = var.kms_custom_key_s3_id != null ? 1 : 0
+
+  bucket = aws_s3_bucket.sam-bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      kms_master_key_id = data.aws_kms_key.s3[0].arn
+      sse_algorithm     = "aws:kms"
+    }
+  }
+}
+
 resource "aws_s3_bucket_versioning" "sam-bucket-versioning" {
   bucket = aws_s3_bucket.sam-bucket.id
   versioning_configuration {
