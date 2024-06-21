@@ -94,3 +94,13 @@ variable "s3_expiration_lifecycle" {
     expiration_days = 15
   }
 }
+
+######################################
+# S3 encryption
+######################################
+
+variable "kms_custom_key_s3_id" {
+  type        = string
+  description = "If not null bucket will be encrypt with provided key id"
+  default     = null
+}
