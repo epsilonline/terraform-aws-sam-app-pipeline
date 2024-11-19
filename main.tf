@@ -44,7 +44,7 @@ module "codebuild-role" {
 
   codepipeline_bucket_arn = var.s3_bucket_artifact_id == null ? aws_s3_bucket.be_artifact_bucket[0].arn : data.aws_s3_bucket.shared_bucket[0].arn
   region                  = var.region
-  role_prefix             = var.name
+  role_prefix             = substr(var.name, 0, )
   account_id              = var.account_id
 }
 
@@ -271,7 +271,7 @@ resource "aws_codepipeline" "be_pipeline" {
 #########################################
 
 resource "aws_iam_role" "cloudwatch_app_source" {
-  name = "${var.name}-event-source"
+  name = substr("${var.name}-event-source", 0, 64)
   path = "/service-role/"
 
   assume_role_policy = <<EOF

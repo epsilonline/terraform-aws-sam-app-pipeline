@@ -1,5 +1,5 @@
 resource "aws_iam_role" "codebuild-service-role" {
-  name = "${var.role_prefix}-codebuild-service-role"
+  name = substr("${var.role_prefix}-codebuild-service-role", 0, 64)
 
   assume_role_policy = <<EOF
 {
