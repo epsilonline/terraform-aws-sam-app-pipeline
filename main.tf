@@ -44,7 +44,7 @@ module "codebuild-role" {
 
   codepipeline_bucket_arn = var.s3_bucket_artifact_id == null ? aws_s3_bucket.be_artifact_bucket[0].arn : data.aws_s3_bucket.shared_bucket[0].arn
   region                  = var.region
-  role_prefix             = substr(var.name, 0, )
+  role_prefix             = substr(var.name, 0, 64)
   account_id              = var.account_id
 }
 
