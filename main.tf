@@ -26,10 +26,10 @@ resource "aws_codecommit_repository" "sam_codecommit_repo" {
 }
 
 module "codecommit-policy" {
-  count   = var.source_stage_provider == "CodeCommit" ? 1 : 0
+  count = var.source_stage_provider == "CodeCommit" ? 1 : 0
   #source = "git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-policy-codecommit.git"
-  version = "~> 1"
-  source  = "gitlab.com/epsilonline/iam-policy-codecommit/aws"
+  version                = "~> 1"
+  source                 = "gitlab.com/epsilonline/iam-policy-codecommit/aws"
   policy_name            = "${var.name}-codecommit-policy"
   codecommit_repo_arn    = local.code_commit_arn
   codecommit_repo_branch = var.branch_name
@@ -139,9 +139,9 @@ data "aws_s3_bucket" "shared_bucket" {
 module "pipeline-role" {
 
   #source      = "git::git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-role-pipeline?ref=v1.0"
-  source       = "gitlab.com/epsilonline/iam-role-pipeline/aws"
-  version               = "~> 1"
-  role_prefix  = var.name
+  source      = "gitlab.com/epsilonline/iam-role-pipeline/aws"
+  version     = "~> 1"
+  role_prefix = var.name
 }
 
 resource "aws_s3_bucket" "sam-bucket" {
@@ -149,7 +149,7 @@ resource "aws_s3_bucket" "sam-bucket" {
 }
 
 data "aws_kms_key" "s3" {
-  count = var.kms_custom_key_s3_id != null ? 1 : 0
+  count  = var.kms_custom_key_s3_id != null ? 1 : 0
   key_id = var.kms_custom_key_s3_id
 }
 
@@ -206,6 +206,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "delete_objects" {
     expiration {
       days = var.s3_expiration_lifecycle.expiration_days
     }
+
+    filter {}
   }
 }
 
