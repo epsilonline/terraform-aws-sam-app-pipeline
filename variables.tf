@@ -39,6 +39,12 @@ variable "name" {
   description = "The name of the application"
 }
 
+variable "artifact_bucket_name" {
+  type        = string
+  description = "Name of the artifact bucket. If null, defaults to source_bucket_name-artifact or name-pipeline-artifacts"
+  default     = null
+}
+
 variable "stack_name" {
   type        = string
   description = "The name of the stack used by SAM to store cloudformation templates"
@@ -104,3 +110,4 @@ variable "kms_custom_key_s3_id" {
   description = "If not null bucket will be encrypt with provided key id"
   default     = null
 }
+
