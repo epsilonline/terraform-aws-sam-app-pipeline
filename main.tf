@@ -13,6 +13,7 @@ locals {
   buildspec_template       = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
   create_code_commit       = var.create_code_commit == true && var.source_stage_provider == "CodeCommit"
   code_commit_arn          = local.create_code_commit ? aws_codecommit_repository.sam_codecommit_repo[0].arn : var.repository_arn
+  artifact_bucket_name     = var.artifact_bucket_name == null ? "${var.name}-pipeline-artifacts" : var.artifact_bucket_name
 }
 
 #########################################
@@ -175,7 +176,7 @@ resource "aws_s3_bucket_versioning" "sam-bucket-versioning" {
 }
 resource "aws_s3_bucket" "be_artifact_bucket" {
   count  = var.s3_bucket_artifact_id == null ? 1 : 0
-  bucket = "${var.name}-pipeline-artifacts"
+  bucket = local.artifact_bucket_name
 }
 
 resource "aws_s3_bucket_ownership_controls" "be_artifact_bucket" {

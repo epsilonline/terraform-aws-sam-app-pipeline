@@ -73,6 +73,12 @@ variable "s3_bucket_artifact_id" {
   description = "Bucket name of shared artifact bucket. If null create a dedicated bucket."
 }
 
+variable "artifact_bucket_name" {
+  type        = string
+  default     = null
+  description = "Custom name for the artifact bucket. If null, defaults to '<name>-pipeline-artifacts'."
+}
+
 variable "buildspec_template" {
   type        = string
   default     = null
