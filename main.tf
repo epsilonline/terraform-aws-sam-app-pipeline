@@ -213,8 +213,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "delete_objects" {
 }
 
 resource "aws_codepipeline" "be_pipeline" {
-  name     = var.name
-  role_arn = module.pipeline-role.arn
+  name          = var.name
+  role_arn      = module.pipeline-role.arn
+  pipeline_type = var.pipeline_type
 
   artifact_store {
     location = var.s3_bucket_artifact_id == null ? aws_s3_bucket.be_artifact_bucket[0].bucket : var.s3_bucket_artifact_id
