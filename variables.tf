@@ -79,6 +79,17 @@ variable "artifact_bucket_name" {
   description = "Custom name for the artifact bucket. If null, defaults to '<name>-pipeline-artifacts'."
 }
 
+variable "pipeline_type" {
+  type        = string
+  description = "Type of pipeline to deploy"
+  default     = "V1"
+
+  validation {
+    condition     = contains(["V1", "V2"], var.pipeline_type)
+    error_message = "The value must be either 'V1' or 'V2'"
+  }
+}
+
 variable "buildspec_template" {
   type        = string
   default     = null
