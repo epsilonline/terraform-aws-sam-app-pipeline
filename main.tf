@@ -13,7 +13,7 @@ locals {
   buildspec_template       = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
   create_code_commit       = var.create_code_commit == true && var.source_stage_provider == "CodeCommit"
   code_commit_arn          = local.create_code_commit ? aws_codecommit_repository.sam_codecommit_repo[0].arn : var.repository_arn
-  artifact_bucket_name     = var.artifact_bucket_name == null ? "${var.name}-pipeline-artifacts" : var.artifact_bucket_name
+  artifact_bucket_name     = var.artifact_bucket_name == null ? substr("${var.name}-pipeline-artifacts", 0, 63) : var.artifact_bucket_name
 }
 
 #########################################
@@ -142,11 +142,11 @@ module "pipeline-role" {
   #source      = "git::git@gitlab.com:epsilonline/terraform-modules/terraform-aws-iam-role-pipeline?ref=v1.0"
   source      = "gitlab.com/epsilonline/iam-role-pipeline/aws"
   version     = "~> 1"
-  role_prefix = var.name
+  role_prefix = substr(var.name, 0, 42) # -pipeline-service-role (22 characters)
 }
 
 resource "aws_s3_bucket" "sam-bucket" {
-  bucket = var.source_bucket_name
+  bucket = substr(var.source_bucket_name, 0, 63)
 }
 
 data "aws_kms_key" "s3" {
