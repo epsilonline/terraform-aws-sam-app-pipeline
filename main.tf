@@ -7,13 +7,20 @@ terraform {
   }
 }
 
+resource "random_string" "bucket_suffix" {
+  length  = 6
+  special = false
+  upper   = false
+}
+
 locals {
   parameter_overrides_list = [for key, value in var.sam_cloudformation_variables : "${key}=$${${key}}"]
   parameter_overrides      = join(" ", local.parameter_overrides_list)
   buildspec_template       = var.buildspec_template == null ? "${path.module}/buildspec.yaml" : var.buildspec_template
   create_code_commit       = var.create_code_commit == true && var.source_stage_provider == "CodeCommit"
   code_commit_arn          = local.create_code_commit ? aws_codecommit_repository.sam_codecommit_repo[0].arn : var.repository_arn
-  artifact_bucket_name     = var.artifact_bucket_name == null ? substr("${var.name}-pipeline-artifacts", 0, 63) : var.artifact_bucket_name
+  base_artifact_name       = substr("${var.name}-pipeline-artifacts", 0, 56)
+  artifact_bucket_name     = var.artifact_bucket_name == null ? "${local.base_artifact_name}-${random_string.bucket_suffix.result}" : var.artifact_bucket_name
 }
 
 #########################################
@@ -57,7 +64,7 @@ resource "aws_codebuild_project" "sam_container_build" {
   name           = var.name
   queued_timeout = 480
   service_role   = module.codebuild-role.arn
-  #  tags           = var.tags
+  #  tags            = var.tags
 
   artifacts {
     encryption_disabled    = false
@@ -146,7 +153,11 @@ module "pipeline-role" {
 }
 
 resource "aws_s3_bucket" "sam-bucket" {
-  bucket = substr(var.source_bucket_name, 0, 63)
+  bucket = "${substr(var.source_bucket_name, 0, 56)}-${random_string.bucket_suffix.result}"
+
+  lifecycle {
+    ignore_changes = [bucket]
+  }
 }
 
 data "aws_kms_key" "s3" {
@@ -177,6 +188,10 @@ resource "aws_s3_bucket_versioning" "sam-bucket-versioning" {
 resource "aws_s3_bucket" "be_artifact_bucket" {
   count  = var.s3_bucket_artifact_id == null ? 1 : 0
   bucket = local.artifact_bucket_name
+
+  lifecycle {
+    ignore_changes = [bucket]
+  }
 }
 
 resource "aws_s3_bucket_ownership_controls" "be_artifact_bucket" {
